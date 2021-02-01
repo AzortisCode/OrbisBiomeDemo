@@ -19,7 +19,7 @@ public final class BiomeDemo {
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.02;
     private static final double REGION_ZOOM = 2500;
-    private static final double TYPE_ZOOM = 500;
+    private static final double TYPE_ZOOM = 750;
     private static final double BIOME_ZOOM = 50;
 
     private static final double LAND_MIN = 0.31;
@@ -67,11 +67,11 @@ public final class BiomeDemo {
                 }
             }
         }
-
         JFrame frame = new JFrame();
         JLabel imageLabel = new JLabel();
         imageLabel.setIcon(new ImageIcon(image));
         frame.add(imageLabel);
+        frame.setTitle("Orbis Biome Demo");
         frame.pack();
         frame.setResizable(false);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
