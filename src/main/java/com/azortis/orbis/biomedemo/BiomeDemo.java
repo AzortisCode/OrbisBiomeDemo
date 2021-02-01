@@ -18,9 +18,16 @@ public final class BiomeDemo {
 
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.02;
-    private static final double REGION_ZOOM = 1000;
-    private static final double TYPE_ZOOM = 100;
-    private static final double BIOME_ZOOM = 10;
+    private static final double REGION_ZOOM = 2500;
+    private static final double TYPE_ZOOM = 500;
+    private static final double BIOME_ZOOM = 50;
+
+    private static final double LAND_MIN = 0.31;
+    private static final double LAND_MAX = 1;
+    private static final double SHORE_MIN = 0.12;
+    private static final double SHORE_MAX = 0.30;
+    private static final double SEA_MIN = -1;
+    private static final double SEA_MAX = 0.11;
 
     private static final OpenSimplex2S regionNoise = new OpenSimplex2S(REGION_SEED);
     private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
@@ -82,9 +89,9 @@ public final class BiomeDemo {
         // Get the type
         double typeValue = Math.round(typeNoise.noise(x / TYPE_ZOOM, z / TYPE_ZOOM) * 100) / 100.0;
         int type = -1;
-        if(typeValue <= -0.33)type = 0;
-        if(typeValue >= -0.32 && typeValue <= 0.33)type = 1;
-        if(typeValue >= 0.34)type = 2;
+        if(typeValue >= LAND_MIN && typeValue <= LAND_MAX)type = 0;
+        if(typeValue >= SHORE_MIN && typeValue <= SHORE_MAX)type = 1;
+        if(typeValue >= SEA_MIN && typeValue <= SEA_MAX)type = 2;
 
         if(region == -1 || typeValue == -1) System.out.println("ERROR: Something went wrong with calculation type or region");
 
