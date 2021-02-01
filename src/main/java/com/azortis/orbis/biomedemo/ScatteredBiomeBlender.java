@@ -32,10 +32,10 @@ import java.util.List;
 
 public class ScatteredBiomeBlender {
 
-    int chunkWidth;
-    int chunkColumnCount;
-    double blendKernelRadiusSq;
-    ChunkPointGatherer<BiomeEvaluation> gatherer;
+    private final int chunkWidth;
+    private final int chunkColumnCount;
+    private final double blendKernelRadiusSq;
+    private final ChunkPointGatherer<BiomeEvaluation> gatherer;
 
     public ScatteredBiomeBlender(double samplingFrequency, double minBlendRadius, int chunkWidth) {
         this.chunkWidth = chunkWidth;
@@ -127,7 +127,7 @@ public class ScatteredBiomeBlender {
     }
 
     @FunctionalInterface
-    public static interface BiomeEvaluationCallback {
+    public interface BiomeEvaluationCallback {
         int getBiomeAt(double x, double z);
     }
 

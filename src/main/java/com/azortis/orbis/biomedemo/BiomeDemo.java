@@ -29,6 +29,8 @@ import com.azortis.orbis.biomedemo.noise.OpenSimplex2S;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class BiomeDemo {
 
@@ -36,9 +38,9 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 1242411432511L;
-    private static final long TYPE_SEED = 24214356315145L;
-    private static final long SEED = 98028491293421L;
+    private static final long REGION_SEED = 12424114321142511L;
+    private static final long TYPE_SEED = 242143827290545145L;
+    private static final long SEED = 98028499298540421L;
 
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.02;
@@ -58,12 +60,16 @@ public final class BiomeDemo {
     private static final OpenSimplex2S biomeNoise = new OpenSimplex2S(SEED);
 
     public static void main(String[] args){
+        long startTime = System.currentTimeMillis();
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
 
         ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(POINT_FREQUENCY, MIN_BLEND_RADIUS, CHUNK_WIDTH);
 
+        List<Long> chunkTimes = new ArrayList<>();
+
         for (int zc = 0; zc < HEIGHT; zc += CHUNK_WIDTH){
             for(int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH){
+                long startChunkTime = System.nanoTime();
 
                 LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(SEED, xc, zc, BiomeDemo::getBiomeAt);
 
@@ -89,8 +95,17 @@ public final class BiomeDemo {
                         image.setRGB(x, z, rgb);
                     }
                 }
+                long chunkTime = System.nanoTime() - startChunkTime;
+                chunkTimes.add(chunkTime);
             }
         }
+        long time = System.currentTimeMillis() - startTime;
+        System.out.println("It took the algorithm " + time + "milliseconds to render the image!");
+
+        long totalChunkTime = chunkTimes.stream().mapToLong(aLong -> aLong).sum();
+        long avgChunkTime = totalChunkTime / chunkTimes.size();
+        System.out.println("With an average chunk time of: " + avgChunkTime + "nanoseconds!");
+
         JFrame frame = new JFrame();
         JLabel imageLabel = new JLabel();
         imageLabel.setIcon(new ImageIcon(image));
