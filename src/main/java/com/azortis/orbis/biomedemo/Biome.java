@@ -44,11 +44,11 @@ public enum Biome {
     COLD_DARKER_MAGENTA(15, 2, 0, 0.34, 1, Color.MAGENTA.darker().darker());
 
 
-    private final int biomeId;
+    private final int biomeId; // The index id for the BiomeBlender to recognize.
     private final int region; // 0 = HOT, 1 = TEMPERATE & 2 = COLD
     private final int type; // 0 = LAND, 1 = SHORE & 2 = SEA
-    private final double biomeMin;
-    private final double biomeMax;
+    private final double biomeMin; // The minimum value on the noise map for this biome -- UNIQUE 2 decimals max!
+    private final double biomeMax; // The maximum value on the noise map for this biome -- UNIQUE 2 decimals max!
     private final Color color; // Pretty obvious
 
     Biome(int biomeId, int region, int type, double biomeMin, double biomeMax, Color color) {

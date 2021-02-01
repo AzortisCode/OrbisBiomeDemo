@@ -25,9 +25,9 @@
 package com.azortis.orbis.biomedemo;
 
 public class LinkedBiomeWeightMap {
-    private int biome;
-    private double[] weights;
-    private LinkedBiomeWeightMap next;
+    private final int biome;
+    private final double[] weights;
+    private final LinkedBiomeWeightMap next;
 
     public LinkedBiomeWeightMap(int biome, int chunkColumnCount, LinkedBiomeWeightMap next) {
         this.biome = biome;

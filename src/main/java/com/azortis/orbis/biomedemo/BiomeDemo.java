@@ -38,22 +38,22 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 12424114321142511L;
-    private static final long TYPE_SEED = 242143827290545145L;
+    private static final long REGION_SEED = 124235425623142511L;
+    private static final long TYPE_SEED = 2421526312382905145L;
     private static final long SEED = 98028499298540421L;
 
-    private static final int MIN_BLEND_RADIUS = 32;
+    private static final int MIN_BLEND_RADIUS = 16;
     private static final double POINT_FREQUENCY = 0.02;
     private static final double REGION_ZOOM = 2500;
-    private static final double TYPE_ZOOM = 750;
-    private static final double BIOME_ZOOM = 50;
+    private static final double TYPE_ZOOM = 850;
+    private static final double BIOME_ZOOM = 300;
 
     private static final double LAND_MIN = 0.31;
     private static final double LAND_MAX = 1;
-    private static final double SHORE_MIN = 0.12;
+    private static final double SHORE_MIN = 0.10;
     private static final double SHORE_MAX = 0.30;
     private static final double SEA_MIN = -1;
-    private static final double SEA_MAX = 0.11;
+    private static final double SEA_MAX = 0.09;
 
     private static final OpenSimplex2S regionNoise = new OpenSimplex2S(REGION_SEED);
     private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
