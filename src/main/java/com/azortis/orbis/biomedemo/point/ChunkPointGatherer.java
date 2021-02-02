@@ -30,11 +30,11 @@ public class ChunkPointGatherer<TTag> {
 
     private static final double CHUNK_RADIUS_RATIO = Math.sqrt(1.0 / 2.0);
 
-    int halfChunkWidth;
-    double maxPointContributionRadius;
-    double maxPointContributionRadiusSq;
+    private final int halfChunkWidth;
+    private final double maxPointContributionRadius;
+    private final double maxPointContributionRadiusSq;
     double radiusPlusHalfChunkWidth;
-    UnfilteredPointGatherer<TTag> unfilteredPointGatherer;
+    private final UnfilteredPointGatherer<TTag> unfilteredPointGatherer;
 
     public ChunkPointGatherer(double frequency, double maxPointContributionRadius, int chunkWidth) {
         this.halfChunkWidth = chunkWidth / 2;

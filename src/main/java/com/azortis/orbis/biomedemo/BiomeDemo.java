@@ -38,22 +38,22 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 124235425623142511L;
-    private static final long TYPE_SEED = 2421526312382905145L;
-    private static final long SEED = 98028499298540421L;
+    private static final long REGION_SEED = 124235435623642511L;
+    private static final long TYPE_SEED = 4215262425211505145L;
+    private static final long SEED = 2356284992923566421L;
 
-    private static final int MIN_BLEND_RADIUS = 16;
-    private static final double POINT_FREQUENCY = 0.02;
+    private static final int MIN_BLEND_RADIUS = 32;
+    private static final double POINT_FREQUENCY = 0.04;
     private static final double REGION_ZOOM = 2500;
     private static final double TYPE_ZOOM = 850;
     private static final double BIOME_ZOOM = 300;
 
     private static final double LAND_MIN = 0.31;
     private static final double LAND_MAX = 1;
-    private static final double SHORE_MIN = 0.10;
+    private static final double SHORE_MIN = 0.15;
     private static final double SHORE_MAX = 0.30;
     private static final double SEA_MIN = -1;
-    private static final double SEA_MAX = 0.09;
+    private static final double SEA_MAX = 0.14;
 
     private static final OpenSimplex2S regionNoise = new OpenSimplex2S(REGION_SEED);
     private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
@@ -83,7 +83,7 @@ public final class BiomeDemo {
                         for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
                             double weight = entry.getWeights()[zi * CHUNK_WIDTH + xi];
                             int biome = entry.getBiome();
-                            Biome biome1 = Biome.getBiome(biome);
+                            Biomes biome1 = Biomes.getBiome(biome);
                             assert biome1 != null;
                             Color color = biome1.getColor();
                             r += color.getRed() * weight;
@@ -135,7 +135,7 @@ public final class BiomeDemo {
         if(region == -1 || typeValue == -1) System.out.println("ERROR: Something went wrong with calculation type or region");
 
         double biomeValue = biomeNoise.noise(x / BIOME_ZOOM, z / BIOME_ZOOM);
-        Biome biome = Biome.getBiome(region, type, biomeValue);
+        Biomes biome = Biomes.getBiome(region, type, biomeValue);
         assert biome != null;
         return biome.getBiomeId();
     }

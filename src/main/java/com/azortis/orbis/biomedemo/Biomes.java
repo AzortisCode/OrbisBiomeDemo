@@ -26,7 +26,7 @@ package com.azortis.orbis.biomedemo;
 
 import java.awt.*;
 
-public enum Biome {
+public enum Biomes {
     HOT_DARKER_RED(1,0, 0, -1, -0.33, Color.RED.darker().darker()),
     HOT_DARK_RED(2,0, 0, -0.32, 0.33, Color.RED.darker()),
     HOT_RED(3,0, 0, 0.34, 1, Color.RED),
@@ -37,7 +37,7 @@ public enum Biome {
     TEMPERATE_GREEN(8, 1, 0, -1, -0.33, Color.GREEN),
     TEMPERATE_DARK_GREEN(9, 1, 0, -0.32, 0.33, Color.GREEN.darker()),
     TEMPERATE_DARKER_GREEN(10, 1, 0 , 0.34, 1, Color.GREEN.darker().darker()),
-    COLD_DARK_BLUE(11, 2, 2, 0, 1, new Color(0, 38, 255)),
+    COLD_DARK_BLUE(11, 2, 2, 0, 1, new Color(0, 38, 255, 255)),
     COLD_DARK_YELLOW(12, 2, 1, 0, 1, new Color(255, 255, 0)),
     COLD_MAGENTA(13, 2, 0, -1, -0.33, Color.MAGENTA),
     COLD_DARK_MAGENTA(14, 2, 0, -0.32, 0.33, Color.MAGENTA.darker()),
@@ -51,7 +51,7 @@ public enum Biome {
     private final double biomeMax; // The maximum value on the noise map for this biome -- UNIQUE 2 decimals max!
     private final Color color; // Pretty obvious
 
-    Biome(int biomeId, int region, int type, double biomeMin, double biomeMax, Color color) {
+    Biomes(int biomeId, int region, int type, double biomeMin, double biomeMax, Color color) {
         this.biomeId = biomeId;
         this.region = region;
         this.type = type;
@@ -84,7 +84,7 @@ public enum Biome {
         return color;
     }
 
-    public static Biome getBiome(int biomeId){
+    public static Biomes getBiome(int biomeId){
         switch (biomeId){
             case 1:
                 return HOT_DARKER_RED;
@@ -120,7 +120,7 @@ public enum Biome {
         return null;
     }
 
-    public static Biome getBiome(int region, int type, double value){
+    public static Biomes getBiome(int region, int type, double value){
         double roundedValue = Math.round(value * 100) / 100.0;
         if(region == 0){
             if(type == 2)return HOT_LIGHT_BLUE;
