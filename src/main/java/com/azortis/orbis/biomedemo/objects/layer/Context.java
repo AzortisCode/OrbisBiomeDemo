@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.azortis.orbis.biomedemo.objects;
+package com.azortis.orbis.biomedemo.objects.layer;
 
 public class Context {
 

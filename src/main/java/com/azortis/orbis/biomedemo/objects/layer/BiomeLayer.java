@@ -22,11 +22,14 @@
  * SOFTWARE.
  */
 
-package com.azortis.orbis.biomedemo.objects;
+package com.azortis.orbis.biomedemo.objects.layer;
 
-public class RegionLayer {
+import com.azortis.orbis.biomedemo.Registry;
+import com.azortis.orbis.biomedemo.objects.Biome;
 
-    private String regionName;
+public class BiomeLayer implements Layer<Biome> {
+
+    private String biomeName;
 
     // If not using contexts, then use the default distribution method
     private double min;
@@ -39,22 +42,36 @@ public class RegionLayer {
     private Context parentContext;
     private Context typeContext;
 
-    public String getRegionName() {
-        return regionName;
+    public String getBiomeName() {
+        return biomeName;
     }
 
+    @Override
+    public Biome getLayerObject() {
+        return Registry.getBiome(biomeName);
+    }
+
+    @Override
     public double getMin() {
         return min;
     }
 
+    @Override
     public double getMax() {
         return max;
     }
 
+    @Override
+    public int getContextChance() {
+        return chance;
+    }
+
+    @Override
     public Context getParentContext() {
         return parentContext;
     }
 
+    @Override
     public Context getTypeContext() {
         return typeContext;
     }

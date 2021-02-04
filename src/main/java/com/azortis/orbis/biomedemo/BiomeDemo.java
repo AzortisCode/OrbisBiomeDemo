@@ -27,6 +27,8 @@ package com.azortis.orbis.biomedemo;
 import com.azortis.orbis.biomedemo.noise.OpenSimplex2S;
 import com.azortis.orbis.biomedemo.objects.*;
 import com.azortis.orbis.biomedemo.objects.Dimension;
+import com.azortis.orbis.biomedemo.objects.layer.BiomeLayer;
+import com.azortis.orbis.biomedemo.objects.layer.RegionLayer;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -41,9 +43,9 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 124235435623642511L;
-    private static final long TYPE_SEED = 4215262425211505145L;
-    private static final long SEED = 2356284992923566421L;
+    private static final long REGION_SEED = 1242352482951642511L;
+    private static final long TYPE_SEED = 2235650352155145L;
+    private static final long SEED = 235623651371436421L;
 
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.04;
@@ -180,6 +182,12 @@ public final class BiomeDemo {
         }
         assert region != null;
         while (biome == null){
+            // Calculate new noise
+            noise.setSeed(region.getSeed());
+            regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
+                    dimension.getPrecision()) / dimension.getPrecision();
+
+            // Make sure to search for the correct type.
             if(type == 0){
                 if(region.getContextSettings().isUseLandContext()){
 
@@ -187,9 +195,6 @@ public final class BiomeDemo {
                     RegionLayer regionLayer = getRegionLayer(region.getLandRegions(), regionNoise);
                     if(regionLayer != null){
                         region = Registry.getRegion(regionLayer.getRegionName());
-                        noise.setSeed(region.getSeed());
-                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
-                                dimension.getPrecision()) / dimension.getPrecision();
                         parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
                     }else {
                         biome = getBiome(region.getLandBiomes(), regionNoise);
@@ -202,9 +207,6 @@ public final class BiomeDemo {
                     RegionLayer regionLayer = getRegionLayer(region.getShoreRegions(), regionNoise);
                     if(regionLayer != null){
                         region = Registry.getRegion(regionLayer.getRegionName());
-                        noise.setSeed(region.getSeed());
-                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
-                                dimension.getPrecision()) / dimension.getPrecision();
                         parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
                     }else {
                         biome = getBiome(region.getShoreBiomes(), regionNoise);
@@ -217,9 +219,6 @@ public final class BiomeDemo {
                     RegionLayer regionLayer = getRegionLayer(region.getSeaRegions(), regionNoise);
                     if(regionLayer != null){
                         region = Registry.getRegion(regionLayer.getRegionName());
-                        noise.setSeed(region.getSeed());
-                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
-                                dimension.getPrecision()) / dimension.getPrecision();
                         parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
                     }else {
                         biome = getBiome(region.getSeaBiomes(), regionNoise);

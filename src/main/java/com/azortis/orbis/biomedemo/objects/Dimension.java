@@ -24,10 +24,11 @@
 
 package com.azortis.orbis.biomedemo.objects;
 
+import com.azortis.orbis.biomedemo.objects.layer.RegionLayer;
+
 import java.util.List;
 
 public class Dimension {
-
 
     private String name;
 
@@ -115,4 +116,5 @@ public class Dimension {
     public List<RegionLayer> getRegions() {
         return regions;
     }
+
 }

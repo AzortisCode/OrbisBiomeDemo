@@ -24,6 +24,9 @@
 
 package com.azortis.orbis.biomedemo.objects;
 
+import com.azortis.orbis.biomedemo.objects.layer.BiomeLayer;
+import com.azortis.orbis.biomedemo.objects.layer.RegionLayer;
+
 import java.util.List;
 
 /**
