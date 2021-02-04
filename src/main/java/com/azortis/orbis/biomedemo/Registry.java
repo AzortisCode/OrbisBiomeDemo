@@ -45,6 +45,8 @@ public class Registry {
     private static final Map<String, Region> regionMap = new HashMap<>();
     private static final Map<String, Biome> biomeMap = new HashMap<>();
 
+    private static final Map<Integer, Biome> biomeIdMap = new HashMap<>();
+
     private Registry(){
         File rootDirectory = new File(System.getProperty("user.dir"));
         File dimensionDirectory = new File(rootDirectory, "/dimensions/");
@@ -70,6 +72,7 @@ public class Registry {
             try{
                 Biome biome = gson.fromJson(new FileReader(biomeFile), Biome.class);
                 biomeMap.put(biome.getName(), biome);
+                biomeIdMap.put(biome.getId(), biome);
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -89,6 +92,11 @@ public class Registry {
     @NotNull
     public static Biome getBiome(String name){
         return biomeMap.get(name);
+    }
+
+    @NotNull
+    public static Biome getBiome(int id){
+        return biomeIdMap.get(id);
     }
 
 }

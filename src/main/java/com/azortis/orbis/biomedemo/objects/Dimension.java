@@ -30,10 +30,12 @@ public class Dimension {
 
 
     private String name;
+
     // Seed used for the point gatherer etc
     private long seed;
-    // The amount of decimal places to take into account when calculation layers, all configuration files must be made according to this(So no missing decimal places!)
-    private int precision;
+
+    // The amount of decimal places times 2 to take into account when calculation layers, all configuration files must be made according to this(So no missing decimal places!)
+    private double precision;
 
     private long regionSeed;
     private double regionZoom;
@@ -66,7 +68,7 @@ public class Dimension {
         return seed;
     }
 
-    public int getPrecision() {
+    public double getPrecision() {
         return precision;
     }
 

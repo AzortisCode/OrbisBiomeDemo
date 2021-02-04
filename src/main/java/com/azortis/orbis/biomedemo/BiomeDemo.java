@@ -25,6 +25,9 @@
 package com.azortis.orbis.biomedemo;
 
 import com.azortis.orbis.biomedemo.noise.OpenSimplex2S;
+import com.azortis.orbis.biomedemo.objects.*;
+import com.azortis.orbis.biomedemo.objects.Dimension;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -59,6 +62,8 @@ public final class BiomeDemo {
     private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
     private static final OpenSimplex2S biomeNoise = new OpenSimplex2S(SEED);
 
+    private static Dimension dimension;
+
     public static void main(String[] args){
         long startTime = System.currentTimeMillis();
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -71,7 +76,7 @@ public final class BiomeDemo {
             for(int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH){
                 long startChunkTime = System.nanoTime();
 
-                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(SEED, xc, zc, BiomeDemo::getBiomeAt);
+                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(SEED, xc, zc, BiomeDemo::getOldBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
                     for (int xi = 0; xi < CHUNK_WIDTH; xi++) {
@@ -117,7 +122,7 @@ public final class BiomeDemo {
         frame.setVisible(true);
     }
 
-    private static int getBiomeAt(double x, double z){
+    private static int getOldBiomeAt(double x, double z){
         // Get the region
         double regionValue = Math.round(regionNoise.noise(x / REGION_ZOOM, z / REGION_ZOOM) * 100) / 100.0;
         int region = -1;
@@ -138,6 +143,121 @@ public final class BiomeDemo {
         Biomes biome = Biomes.getBiome(region, type, biomeValue);
         assert biome != null;
         return biome.getBiomeId();
+    }
+
+    private static int getBiomeAt(double x, double z){
+        final OpenSimplex2S noise = new OpenSimplex2S(dimension.getTypeSeed());
+
+        // First calculate the type.
+        final double typeNoise = Math.round(noise.noise(x / dimension.getTypeZoom(), z / dimension.getTypeZoom()) *
+                dimension.getPrecision()) / dimension.getPrecision();
+        int type = -1;
+        double typeContext = 0;
+        if(typeNoise >= dimension.getLandMin() && typeNoise <= dimension.getLandMax()){
+            type = 0;
+            typeContext = getContext(dimension.getLandMin(), dimension.getLandMax(), typeNoise);
+        } else if(typeNoise >= dimension.getShoreMin() && typeNoise <= dimension.getShoreMax()){
+            type = 1;
+            typeContext = getContext(dimension.getShoreMin(), dimension.getShoreMax(), typeNoise);
+        } else if(typeNoise >= dimension.getSeaMin() && typeNoise <= dimension.getSeaMax()){
+            type = 2;
+            typeContext = getContext(dimension.getSeaMin(), dimension.getSeaMax(), typeNoise);
+        }
+
+        // Calculate initial region noise
+        noise.setSeed(dimension.getRegionSeed());
+        double regionNoise = Math.round(noise.noise(x / dimension.getRegionZoom(), z / dimension.getRegionZoom()) *
+                dimension.getPrecision()) / dimension.getPrecision();
+        double parentContext = 0;
+        Region region = null;
+        Biome biome = null;
+        for (RegionLayer regionLayer : dimension.getRegions()) {
+            if (regionNoise >= regionLayer.getMin() && regionNoise <= regionLayer.getMax()) {
+                region = Registry.getRegion(regionLayer.getRegionName());
+                parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
+                break;
+            }
+        }
+        assert region != null;
+        while (biome == null){
+            if(type == 0){
+                if(region.getContextSettings().isUseLandContext()){
+
+                } else {
+                    RegionLayer regionLayer = getRegionLayer(region.getLandRegions(), regionNoise);
+                    if(regionLayer != null){
+                        region = Registry.getRegion(regionLayer.getRegionName());
+                        noise.setSeed(region.getSeed());
+                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
+                                dimension.getPrecision()) / dimension.getPrecision();
+                        parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
+                    }else {
+                        biome = getBiome(region.getLandBiomes(), regionNoise);
+                    }
+                }
+            }else if(type == 1){
+                if(region.getContextSettings().isUseShoreContext()){
+
+                } else {
+                    RegionLayer regionLayer = getRegionLayer(region.getShoreRegions(), regionNoise);
+                    if(regionLayer != null){
+                        region = Registry.getRegion(regionLayer.getRegionName());
+                        noise.setSeed(region.getSeed());
+                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
+                                dimension.getPrecision()) / dimension.getPrecision();
+                        parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
+                    }else {
+                        biome = getBiome(region.getShoreBiomes(), regionNoise);
+                    }
+                }
+            }else if (type == 2){
+                if(region.getContextSettings().isUseSeaContext()){
+
+                } else {
+                    RegionLayer regionLayer = getRegionLayer(region.getSeaRegions(), regionNoise);
+                    if(regionLayer != null){
+                        region = Registry.getRegion(regionLayer.getRegionName());
+                        noise.setSeed(region.getSeed());
+                        regionNoise = Math.round(noise.noise(x / region.getZoom(), z / region.getZoom()) *
+                                dimension.getPrecision()) / dimension.getPrecision();
+                        parentContext = getContext(regionLayer.getMin(), regionLayer.getMax(), regionNoise);
+                    }else {
+                        biome = getBiome(region.getSeaBiomes(), regionNoise);
+                    }
+                }
+            }
+        }
+        return biome.getId();
+    }
+
+    @Nullable
+    private static RegionLayer getRegionLayer(final List<RegionLayer> layers, final double noise){
+        RegionLayer resultLayer = null;
+        for (RegionLayer layer : layers){
+            if (noise >= layer.getMin() && noise <= layer.getMax()) {
+                resultLayer = layer;
+                break;
+            }
+        }
+        return resultLayer;
+    }
+
+    @Nullable
+    private static Biome getBiome(final List<BiomeLayer> layers, final double noise){
+        Biome biome = null;
+        for (BiomeLayer layer : layers){
+            if (noise >= layer.getMin() && noise <= layer.getMax()) {
+                biome = Registry.getBiome(layer.getBiomeName());
+                break;
+            }
+        }
+        return biome;
+    }
+
+    private static double getContext(double min, double max, double noise){
+        final double range = max - min;
+        final double value = noise - min;
+        return Math.round((((value / range) * 2) - 1) * dimension.getPrecision()) / dimension.getPrecision();
     }
 
 }

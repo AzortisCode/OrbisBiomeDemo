@@ -22,24 +22,23 @@
  * SOFTWARE.
  */
 
-package com.azortis.orbis.biomedemo.noise;
+package com.azortis.orbis.biomedemo.objects;
 
-public class OpenSimplex2S {
+public class ContextSettings {
 
-    private final FastNoise noise;
+    private boolean useLandContext;
+    private boolean useShoreContext;
+    private boolean useSeaContext;
 
-    public OpenSimplex2S(long seed){
-        noise = new FastNoise(seed);
-        noise.setNoiseType(FastNoise.NoiseType.OpenSimplex2S);
-        noise.setFrequency(1);
+    public boolean isUseLandContext() {
+        return useLandContext;
     }
 
-    public double noise(double x, double z){
-        return noise.getNoise(x, z);
+    public boolean isUseShoreContext() {
+        return useShoreContext;
     }
 
-    public void setSeed(long seed){
-        noise.setSeed(seed);
+    public boolean isUseSeaContext() {
+        return useSeaContext;
     }
-
 }

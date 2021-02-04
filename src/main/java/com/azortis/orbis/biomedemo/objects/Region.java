@@ -35,8 +35,8 @@ public class Region {
 
     private String name;
 
-    // If it should use the noise to actually spread the biomes
-    private boolean useBiomes;
+    // Use context
+    private ContextSettings contextSettings;
 
     // The seed for the noise algorithm
     private long seed;
@@ -44,14 +44,14 @@ public class Region {
     // The zoom to use, will be used on subregions or biomes.
     private double zoom;
 
-    // Child regions
-    private List<RegionLayer> landRegions;
-    private List<RegionLayer> shoreRegions;
-    private List<RegionLayer> seaRegions;
 
-    // Biomes
+    private List<RegionLayer> landRegions;
     private List<BiomeLayer> landBiomes;
+
+    private List<RegionLayer> shoreRegions;
     private List<BiomeLayer> shoreBiomes;
+
+    private List<RegionLayer> seaRegions;
     private List<BiomeLayer> seaBiomes;
 
     public Region(){
@@ -61,8 +61,8 @@ public class Region {
         return name;
     }
 
-    public boolean isUseBiomes() {
-        return useBiomes;
+    public ContextSettings getContextSettings() {
+        return contextSettings;
     }
 
     public long getSeed() {
@@ -77,20 +77,20 @@ public class Region {
         return landRegions;
     }
 
-    public List<RegionLayer> getShoreRegions() {
-        return shoreRegions;
-    }
-
-    public List<RegionLayer> getSeaRegions() {
-        return seaRegions;
-    }
-
     public List<BiomeLayer> getLandBiomes() {
         return landBiomes;
     }
 
+    public List<RegionLayer> getShoreRegions() {
+        return shoreRegions;
+    }
+
     public List<BiomeLayer> getShoreBiomes() {
         return shoreBiomes;
+    }
+
+    public List<RegionLayer> getSeaRegions() {
+        return seaRegions;
     }
 
     public List<BiomeLayer> getSeaBiomes() {

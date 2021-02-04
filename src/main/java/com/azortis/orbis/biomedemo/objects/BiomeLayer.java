@@ -26,9 +26,22 @@ package com.azortis.orbis.biomedemo.objects;
 
 public class BiomeLayer {
 
+    private String biomeName;
+
+    // If not using contexts, then use the default distribution method
     private double min;
     private double max;
-    private String biomeName;
+
+    // If providing contexts, the min/max system is not viable and thus first a pool is created using
+    // the contexts and then it will use the noise to spread the participating regions/biomes
+    // along that map, upping the chance will give it a bigger range
+    private int chance;
+    private Context parentContext;
+    private Context typeContext;
+
+    public String getBiomeName() {
+        return biomeName;
+    }
 
     public double getMin() {
         return min;
@@ -38,7 +51,15 @@ public class BiomeLayer {
         return max;
     }
 
-    public String getBiomeName() {
-        return biomeName;
+    public int getChance() {
+        return chance;
+    }
+
+    public Context getParentContext() {
+        return parentContext;
+    }
+
+    public Context getTypeContext() {
+        return typeContext;
     }
 }

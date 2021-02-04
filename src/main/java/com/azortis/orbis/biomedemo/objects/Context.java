@@ -22,24 +22,18 @@
  * SOFTWARE.
  */
 
-package com.azortis.orbis.biomedemo.noise;
+package com.azortis.orbis.biomedemo.objects;
 
-public class OpenSimplex2S {
+public class Context {
 
-    private final FastNoise noise;
+    private double min;
+    private double max;
 
-    public OpenSimplex2S(long seed){
-        noise = new FastNoise(seed);
-        noise.setNoiseType(FastNoise.NoiseType.OpenSimplex2S);
-        noise.setFrequency(1);
+    public double getMin() {
+        return min;
     }
 
-    public double noise(double x, double z){
-        return noise.getNoise(x, z);
+    public double getMax() {
+        return max;
     }
-
-    public void setSeed(long seed){
-        noise.setSeed(seed);
-    }
-
 }
