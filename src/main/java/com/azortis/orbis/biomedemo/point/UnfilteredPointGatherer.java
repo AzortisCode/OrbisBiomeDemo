@@ -27,8 +27,8 @@ package com.azortis.orbis.biomedemo.point;
 import java.util.List;
 import java.util.ArrayList;
 
-public class UnfilteredPointGatherer<TTag>
-{
+@SuppressWarnings("all")
+public class UnfilteredPointGatherer<TTag> {
     // For handling a (jittered) hex grid
     private static final double SQRT_HALF = Math.sqrt(1.0 / 2.0);
     private static final double TRIANGLE_EDGE_LENGTH = Math.sqrt(2.0 / 3.0);
@@ -53,6 +53,7 @@ public class UnfilteredPointGatherer<TTag>
     private static final int N_VECTORS_WITH_REPETITION = N_VECTORS * 4 / 3;
     private static final int VECTOR_INDEX_MASK = N_VECTORS_WITH_REPETITION - 1;
     private static double[] JITTER_SINCOS;
+
     static {
         final int sinCosArraySize = N_VECTORS_WITH_REPETITION * 5 / 4;
         final double sinCosOffsetFactor = (1.0 / JITTER_VECTOR_COUNT_MULTIPLIER);
@@ -151,15 +152,18 @@ public class UnfilteredPointGatherer<TTag>
     }
 
     public List<GatheredPoint<TTag>> getPoints(long seed, double x, double z) {
-        x *= frequency; z *= frequency;
+        x *= frequency;
+        z *= frequency;
 
         // Simplex 2D Skew.
         double s = (x + z) * 0.366025403784439;
         double xs = x + s, zs = z + s;
 
         // Base vertex of compressed square.
-        int xsb = (int)xs; if (xs < xsb) xsb -= 1;
-        int zsb = (int)zs; if (zs < zsb) zsb -= 1;
+        int xsb = (int) xs;
+        if (xs < xsb) xsb -= 1;
+        int zsb = (int) zs;
+        if (zs < zsb) zsb -= 1;
         double xsi = xs - xsb, zsi = zs - zsb;
 
         // Find closest vertex on triangle lattice.
@@ -172,7 +176,8 @@ public class UnfilteredPointGatherer<TTag>
             } else if (q < 0) {
                 xsb += 1;
             } else {
-                xsb += 1; zsb += 1;
+                xsb += 1;
+                zsb += 1;
             }
         } else {
             if (p > 1) {
@@ -202,8 +207,8 @@ public class UnfilteredPointGatherer<TTag>
 
             // Compute the jitter hash
             int hash = xsvp ^ zsvp;
-            hash = (((int)(seed & 0xFFFFFFFFL) ^ hash) * 668908897)
-                    ^ (((int)(seed >> 32) ^ hash) * 35311);
+            hash = (((int) (seed & 0xFFFFFFFFL) ^ hash) * 668908897)
+                    ^ (((int) (seed >> 32) ^ hash) * 35311);
 
             // Even selection within 0-24, using pseudo-modulo technique.
             int indexBase = (hash & 0x3FFFFFF) * 0x5555555;
@@ -231,6 +236,7 @@ public class UnfilteredPointGatherer<TTag>
     private static class LatticePoint {
         public int xsvp, zsvp;
         public double xv, zv;
+
         public LatticePoint(int xsv, int zsv) {
             this.xsvp = xsv * PRIME_X;
             this.zsvp = zsv * PRIME_Z;

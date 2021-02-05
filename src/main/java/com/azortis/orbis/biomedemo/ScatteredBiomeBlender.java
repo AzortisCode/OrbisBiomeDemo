@@ -43,7 +43,7 @@ public class ScatteredBiomeBlender {
         double blendKernelRadius = minBlendRadius
                 + UnfilteredPointGatherer.MAX_GRIDSCALE_DISTANCE_TO_CLOSEST_POINT / samplingFrequency;
         this.blendKernelRadiusSq = blendKernelRadius * blendKernelRadius;
-        this.gatherer = new ChunkPointGatherer<BiomeEvaluation>(samplingFrequency, blendKernelRadius, chunkWidth);
+        this.gatherer = new ChunkPointGatherer<>(samplingFrequency, blendKernelRadius, chunkWidth);
     }
 
     public LinkedBiomeWeightMap getBlendForChunk(long seed, int chunkBaseWorldX, int chunkBaseWorldZ, BiomeEvaluationCallback callback) {
@@ -134,6 +134,7 @@ public class ScatteredBiomeBlender {
     private static class BiomeEvaluation {
         int biome;
         double tempDzSquared;
+
         public BiomeEvaluation(int biome) {
             this.biome = biome;
         }

@@ -25,8 +25,8 @@
 package com.azortis.orbis.biomedemo.point;
 
 public class GatheredPoint<TTag> {
-    private double x, z;
-    private int hash;
+    private final double x, z;
+    private final int hash;
     private TTag tag;
 
     public GatheredPoint(double x, double z, int hash) {

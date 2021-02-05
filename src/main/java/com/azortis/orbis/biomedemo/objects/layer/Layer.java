@@ -32,7 +32,9 @@ public interface Layer<T> {
 
     double getMax();
 
-    int getContextChance();
+    int getIndex();
+
+    int getChance();
 
     Context getTypeContext();
 

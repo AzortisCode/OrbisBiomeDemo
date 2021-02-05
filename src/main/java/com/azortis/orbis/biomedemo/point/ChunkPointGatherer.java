@@ -60,7 +60,7 @@ public class ChunkPointGatherer<TTag> {
             double axisCheckValueZ = Math.abs(point.getZ() - chunkCenterWorldZ) - halfChunkWidth;
             if (axisCheckValueX >= maxPointContributionRadius || axisCheckValueZ >= maxPointContributionRadius
                     || (axisCheckValueX > 0 && axisCheckValueZ > 0
-                    && axisCheckValueX*axisCheckValueX + axisCheckValueZ*axisCheckValueZ >= maxPointContributionRadiusSq)) {
+                    && axisCheckValueX * axisCheckValueX + axisCheckValueZ * axisCheckValueZ >= maxPointContributionRadiusSq)) {
 
                 // If so, remove it.
                 // Copy the last value to this value, and remove the last,

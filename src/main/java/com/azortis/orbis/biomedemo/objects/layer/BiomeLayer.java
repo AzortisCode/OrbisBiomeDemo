@@ -38,6 +38,7 @@ public class BiomeLayer implements Layer<Biome> {
     // If providing contexts, the min/max system is not viable and thus first a pool is created using
     // the contexts and then it will use the noise to spread the participating regions/biomes
     // along that map, upping the chance will give it a bigger range
+    private int index;
     private int chance;
     private Context parentContext;
     private Context typeContext;
@@ -62,7 +63,12 @@ public class BiomeLayer implements Layer<Biome> {
     }
 
     @Override
-    public int getContextChance() {
+    public int getIndex() {
+        return index;
+    }
+
+    @Override
+    public int getChance() {
         return chance;
     }
 
