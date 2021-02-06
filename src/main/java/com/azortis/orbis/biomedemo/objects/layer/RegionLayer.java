@@ -27,6 +27,8 @@ package com.azortis.orbis.biomedemo.objects.layer;
 import com.azortis.orbis.biomedemo.Registry;
 import com.azortis.orbis.biomedemo.objects.Region;
 
+import java.util.List;
+
 public class RegionLayer implements Layer<Region> {
 
     private String regionName;
@@ -40,10 +42,10 @@ public class RegionLayer implements Layer<Region> {
     // along that map, upping the chance will give it a bigger range
     private int index;
     private int chance;
-    private Context parentContext;
-    private Context typeContext;
+    private List<Context> contexts;
 
-    public String getRegionName() {
+    @Override
+    public String getLayerName() {
         return regionName;
     }
 
@@ -73,12 +75,7 @@ public class RegionLayer implements Layer<Region> {
     }
 
     @Override
-    public Context getParentContext() {
-        return parentContext;
-    }
-
-    @Override
-    public Context getTypeContext() {
-        return typeContext;
+    public List<Context> getContexts() {
+        return contexts;
     }
 }

@@ -26,8 +26,13 @@ package com.azortis.orbis.biomedemo.objects.layer;
 
 public class Context {
 
+    private String context;
     private double min;
     private double max;
+
+    public String getContext() {
+        return context;
+    }
 
     public double getMin() {
         return min;

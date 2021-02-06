@@ -24,7 +24,11 @@
 
 package com.azortis.orbis.biomedemo.objects.layer;
 
+import java.util.List;
+
 public interface Layer<T> {
+
+    String getLayerName();
 
     T getLayerObject();
 
@@ -36,8 +40,6 @@ public interface Layer<T> {
 
     int getChance();
 
-    Context getTypeContext();
-
-    Context getParentContext();
+    List<Context> getContexts();
 
 }

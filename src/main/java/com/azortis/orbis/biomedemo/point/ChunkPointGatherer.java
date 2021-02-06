@@ -41,7 +41,7 @@ public class ChunkPointGatherer<TTag> {
         this.maxPointContributionRadius = maxPointContributionRadius;
         this.maxPointContributionRadiusSq = maxPointContributionRadius * maxPointContributionRadius;
         this.radiusPlusHalfChunkWidth = maxPointContributionRadius + halfChunkWidth;
-        unfilteredPointGatherer = new UnfilteredPointGatherer<TTag>(frequency,
+        unfilteredPointGatherer = new UnfilteredPointGatherer<>(frequency,
                 maxPointContributionRadius + chunkWidth * CHUNK_RADIUS_RATIO);
     }
 

@@ -27,6 +27,8 @@ package com.azortis.orbis.biomedemo.objects.layer;
 import com.azortis.orbis.biomedemo.Registry;
 import com.azortis.orbis.biomedemo.objects.Biome;
 
+import java.util.List;
+
 public class BiomeLayer implements Layer<Biome> {
 
     private String biomeName;
@@ -40,10 +42,10 @@ public class BiomeLayer implements Layer<Biome> {
     // along that map, upping the chance will give it a bigger range
     private int index;
     private int chance;
-    private Context parentContext;
-    private Context typeContext;
+    private List<Context> contexts;
 
-    public String getBiomeName() {
+    @Override
+    public String getLayerName() {
         return biomeName;
     }
 
@@ -73,12 +75,7 @@ public class BiomeLayer implements Layer<Biome> {
     }
 
     @Override
-    public Context getParentContext() {
-        return parentContext;
-    }
-
-    @Override
-    public Context getTypeContext() {
-        return typeContext;
+    public List<Context> getContexts() {
+        return contexts;
     }
 }

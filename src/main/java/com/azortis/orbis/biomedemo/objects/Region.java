@@ -44,9 +44,8 @@ public class Region {
     // The seed for the noise algorithm
     private long seed;
 
-    // The zoom to use, will be used on subregions or biomes.
+    // The zoom
     private double zoom;
-
 
     private List<RegionLayer> landRegions;
     private List<BiomeLayer> landBiomes;

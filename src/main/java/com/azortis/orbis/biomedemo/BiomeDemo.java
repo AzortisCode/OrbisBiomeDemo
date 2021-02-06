@@ -24,14 +24,9 @@
 
 package com.azortis.orbis.biomedemo;
 
-import com.azortis.orbis.biomedemo.noise.OpenSimplex2S;
 import com.azortis.orbis.biomedemo.objects.*;
 import com.azortis.orbis.biomedemo.objects.Dimension;
-import com.azortis.orbis.biomedemo.objects.layer.BiomeLayer;
-import com.azortis.orbis.biomedemo.objects.layer.Layer;
-import com.azortis.orbis.biomedemo.objects.layer.RegionLayer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.azortis.orbis.biomedemo.point.BiomePointGatherer;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,34 +40,16 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 1242352482951642511L;
-    private static final long TYPE_SEED = 2235650352155145L;
-    private static final long SEED = 235623651371436421L;
-
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.04;
-    private static final double REGION_ZOOM = 2500;
-    private static final double TYPE_ZOOM = 850;
-    private static final double BIOME_ZOOM = 300;
-
-    private static final double LAND_MIN = 0.31;
-    private static final double LAND_MAX = 1;
-    private static final double SHORE_MIN = 0.15;
-    private static final double SHORE_MAX = 0.30;
-    private static final double SEA_MIN = -1;
-    private static final double SEA_MAX = 0.14;
-
-    private static final OpenSimplex2S regionNoise = new OpenSimplex2S(REGION_SEED);
-    private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
-    private static final OpenSimplex2S biomeNoise = new OpenSimplex2S(SEED);
-
-    private static Dimension dimension;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
-        dimension = Registry.getDimension(args[0]);
+        Registry.initialize();
+        Dimension dimension = Registry.getDimension(args[0]);
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
+        BiomePointGatherer biomePointGatherer = new BiomePointGatherer(dimension, CHUNK_WIDTH);
         ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(POINT_FREQUENCY, MIN_BLEND_RADIUS, CHUNK_WIDTH);
 
         List<Long> chunkTimes = new ArrayList<>();
@@ -80,7 +57,7 @@ public final class BiomeDemo {
             for (int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH) {
                 long startChunkTime = System.nanoTime();
 
-                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(SEED, xc, zc, BiomeDemo::getBiomeAt);
+                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, biomePointGatherer::getBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
                     for (int xi = 0; xi < CHUNK_WIDTH; xi++) {
@@ -90,7 +67,21 @@ public final class BiomeDemo {
                         double r, g, b;
                         r = g = b = 0;
 
+                        double maxWeight = Double.NEGATIVE_INFINITY;
                         for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
+                            double weight = entry.getWeights()[zi * CHUNK_WIDTH + xi];
+                            if (weight > maxWeight) {
+                                maxWeight = weight;
+                                int biomeId = entry.getBiome();
+                                Biome biome = Registry.getBiome(biomeId);
+                                Color color = biome.getColor();
+                                r = color.getRed();
+                                g = color.getGreen();
+                                b = color.getBlue();
+                            }
+                        }
+
+                        /*for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
                             double weight = entry.getWeights()[zi * CHUNK_WIDTH + xi];
                             int biomeId = entry.getBiome();
                             Biome biome = Registry.getBiome(biomeId);
@@ -98,7 +89,7 @@ public final class BiomeDemo {
                             r += color.getRed() * weight;
                             g += color.getGreen() * weight;
                             b += color.getBlue() * weight;
-                        }
+                        }*/
 
                         int rgb = new Color((int) r, (int) g, (int) b).getRGB();
                         image.setRGB(x, z, rgb);
@@ -150,7 +141,7 @@ public final class BiomeDemo {
         return biome.getBiomeId();
     }*/
 
-    private static int getBiomeAt(double x, double z) {
+    /*private static int getBiomeAt(double x, double z) {
         final OpenSimplex2S noise = new OpenSimplex2S(dimension.getTypeSeed());
 
         // First calculate the type.
@@ -207,7 +198,7 @@ public final class BiomeDemo {
                             selectedMinMax = minMax;
                         }
                     }
-                    assert selectedMinMax != null;
+                    assert selectedLayer != null;
                     min = selectedMinMax[0];
                     max = selectedMinMax[1];
                 } else {
@@ -290,9 +281,9 @@ public final class BiomeDemo {
         double currentMin = -1;
         for (Layer<?> layer : layers) {
             double min = currentMin;
-            double max = min + Math.round(((double) layer.getChance() / maxChance) * dimension.getPrecision()) / dimension.getPrecision();
+            double max = min + (Math.round(((double) layer.getChance() / maxChance) * dimension.getPrecision()) / dimension.getPrecision()) * 2.0;
             layerMap.put(new double[]{min, max}, layer);
-            currentMin += max + 1.0 / dimension.getPrecision();
+            currentMin = max + 1.0 / dimension.getPrecision();
         }
         return layerMap;
     }
@@ -313,6 +304,6 @@ public final class BiomeDemo {
         final double range = max - min;
         final double value = noise - min;
         return Math.round((((value / range) * 2) - 1) * dimension.getPrecision()) / dimension.getPrecision();
-    }
+    }*/
 
 }
