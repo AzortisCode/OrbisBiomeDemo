@@ -45,31 +45,14 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1536;
     private static final int CHUNK_WIDTH = 16;
 
-    private static final long REGION_SEED = 1242352482951642511L;
-    private static final long TYPE_SEED = 2235650352155145L;
-    private static final long SEED = 235623651371436421L;
-
     private static final int MIN_BLEND_RADIUS = 32;
     private static final double POINT_FREQUENCY = 0.04;
-    private static final double REGION_ZOOM = 2500;
-    private static final double TYPE_ZOOM = 850;
-    private static final double BIOME_ZOOM = 300;
-
-    private static final double LAND_MIN = 0.31;
-    private static final double LAND_MAX = 1;
-    private static final double SHORE_MIN = 0.15;
-    private static final double SHORE_MAX = 0.30;
-    private static final double SEA_MIN = -1;
-    private static final double SEA_MAX = 0.14;
-
-    private static final OpenSimplex2S regionNoise = new OpenSimplex2S(REGION_SEED);
-    private static final OpenSimplex2S typeNoise = new OpenSimplex2S(TYPE_SEED);
-    private static final OpenSimplex2S biomeNoise = new OpenSimplex2S(SEED);
 
     private static Dimension dimension;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
+        Registry.initialize();
         dimension = Registry.getDimension(args[0]);
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
@@ -80,7 +63,7 @@ public final class BiomeDemo {
             for (int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH) {
                 long startChunkTime = System.nanoTime();
 
-                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(SEED, xc, zc, BiomeDemo::getBiomeAt);
+                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, BiomeDemo::getBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
                     for (int xi = 0; xi < CHUNK_WIDTH; xi++) {
@@ -207,7 +190,7 @@ public final class BiomeDemo {
                             selectedMinMax = minMax;
                         }
                     }
-                    assert selectedMinMax != null;
+                    assert selectedLayer != null;
                     min = selectedMinMax[0];
                     max = selectedMinMax[1];
                 } else {
@@ -290,9 +273,9 @@ public final class BiomeDemo {
         double currentMin = -1;
         for (Layer<?> layer : layers) {
             double min = currentMin;
-            double max = min + Math.round(((double) layer.getChance() / maxChance) * dimension.getPrecision()) / dimension.getPrecision();
+            double max = min + (Math.round(((double) layer.getChance() / maxChance) * dimension.getPrecision()) / dimension.getPrecision()) * 2.0;
             layerMap.put(new double[]{min, max}, layer);
-            currentMin += max + 1.0 / dimension.getPrecision();
+            currentMin = max + 1.0 / dimension.getPrecision();
         }
         return layerMap;
     }

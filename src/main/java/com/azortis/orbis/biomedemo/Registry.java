@@ -47,7 +47,9 @@ public class Registry {
 
     private static final Map<Integer, Biome> biomeIdMap = new HashMap<>();
 
-    private Registry(){
+    private Registry(){}
+
+    public static void initialize(){
         File rootDirectory = new File(System.getProperty("user.dir"));
         File dimensionDirectory = new File(rootDirectory, "/dimensions/");
         for (File dimensionFile : Objects.requireNonNull(dimensionDirectory.listFiles())) {

@@ -43,7 +43,8 @@ public class BiomeLayer implements Layer<Biome> {
     private Context parentContext;
     private Context typeContext;
 
-    public String getBiomeName() {
+    @Override
+    public String getLayerName() {
         return biomeName;
     }
 

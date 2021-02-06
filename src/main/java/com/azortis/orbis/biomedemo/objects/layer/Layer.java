@@ -26,6 +26,8 @@ package com.azortis.orbis.biomedemo.objects.layer;
 
 public interface Layer<T> {
 
+    String getLayerName();
+
     T getLayerObject();
 
     double getMin();

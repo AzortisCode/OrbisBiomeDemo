@@ -43,7 +43,8 @@ public class RegionLayer implements Layer<Region> {
     private Context parentContext;
     private Context typeContext;
 
-    public String getRegionName() {
+    @Override
+    public String getLayerName() {
         return regionName;
     }
 
