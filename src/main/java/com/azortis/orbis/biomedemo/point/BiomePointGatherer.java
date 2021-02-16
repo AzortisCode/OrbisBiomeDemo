@@ -54,7 +54,7 @@ public class BiomePointGatherer {
 
         final Map<String, Double> contexts = new HashMap<>();
 
-        ChunkPointGatherer<Double> pointGatherer = new ChunkPointGatherer<>(1.0 / dimension.getTypeZoom(), 32, chunkWidth);
+        ChunkPointGatherer<Double> pointGatherer = new ChunkPointGatherer<>(dimension.getTypeFreq(), dimension.getTypeContrib(), chunkWidth);
         List<GatheredPoint<Double>> pointList = pointGatherer.getPointsFromChunkBase(dimension.getTypeSeed(), chunkX, chunkZ);
         final GatheredPoint<Double> closestTypePoint = getClosestPoint(x, z, pointList);
         assert closestTypePoint != null;
@@ -75,7 +75,7 @@ public class BiomePointGatherer {
         contexts.put("type", typeContext);
 
         // Refresh to use for getting initial regions points
-        pointGatherer = new ChunkPointGatherer<>(1.0 / dimension.getRegionZoom(), 32, chunkWidth);
+        pointGatherer = new ChunkPointGatherer<>(dimension.getRegionFreq(), dimension.getRegionContrib(), chunkWidth);
         pointList = pointGatherer.getPointsFromChunkBase(dimension.getRegionSeed(), chunkX, chunkZ);
 
         GatheredPoint<Double> closestPoint = getClosestPoint(x, z, pointList); // Todo grab new closestPoint per region iteration, requires frequency and maxPointContribution to be variable

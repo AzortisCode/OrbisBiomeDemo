@@ -53,6 +53,11 @@ public class Dimension {
     private double landMin;
     private double landMax;
 
+    private double typeFreq;
+    private int typeContrib;
+    private double regionFreq;
+    private int regionContrib;
+
     // Initial regions to sample from, should mostly represent temperature
     //
     // The best order is: Climate -> Sub-climates -> Biome zone(Variations of the same biome like Pine forrest has multiple types) -> Actual biomes.
@@ -111,6 +116,22 @@ public class Dimension {
 
     public double getLandMax() {
         return landMax;
+    }
+
+    public double getTypeFreq() {
+        return typeFreq;
+    }
+
+    public int getTypeContrib() {
+        return typeContrib;
+    }
+
+    public double getRegionFreq() {
+        return regionFreq;
+    }
+
+    public int getRegionContrib() {
+        return regionContrib;
     }
 
     public List<RegionLayer> getRegions() {
