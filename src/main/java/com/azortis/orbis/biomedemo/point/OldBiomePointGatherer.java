@@ -37,12 +37,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class BiomePointGatherer {
+public class OldBiomePointGatherer {
 
     private final Dimension dimension;
     private final int chunkWidth;
 
-    public BiomePointGatherer(Dimension dimension, int chunkWidth){
+    public OldBiomePointGatherer(Dimension dimension, int chunkWidth){
         this.dimension = dimension;
         this.chunkWidth = chunkWidth;
     }

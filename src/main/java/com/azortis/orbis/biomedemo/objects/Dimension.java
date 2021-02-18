@@ -53,6 +53,11 @@ public class Dimension {
     private double landMin;
     private double landMax;
 
+    private double cellZoom;
+    private int cellPointContributionRadius;
+    private int maxTypeContributionRadius; // Must be lower than above
+    private int maxRegionContributionRadius;
+
     private double typeFreq;
     private int typeContrib;
     private double regionFreq;
@@ -116,6 +121,22 @@ public class Dimension {
 
     public double getLandMax() {
         return landMax;
+    }
+
+    public double getCellZoom() {
+        return cellZoom;
+    }
+
+    public int getCellPointContributionRadius() {
+        return cellPointContributionRadius;
+    }
+
+    public int getMaxTypeContributionRadius() {
+        return maxTypeContributionRadius;
+    }
+
+    public int getMaxRegionContributionRadius() {
+        return maxRegionContributionRadius;
     }
 
     public double getTypeFreq() {

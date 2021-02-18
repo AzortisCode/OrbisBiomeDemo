@@ -56,6 +56,8 @@ public class Region {
     private List<RegionLayer> seaRegions;
     private List<BiomeLayer> seaBiomes;
 
+    private int maxContributionRadius;
+
     public Region(){
     }
 
@@ -97,5 +99,9 @@ public class Region {
 
     public List<BiomeLayer> getSeaBiomes() {
         return seaBiomes;
+    }
+
+    public int getMaxContributionRadius() {
+        return maxContributionRadius;
     }
 }
