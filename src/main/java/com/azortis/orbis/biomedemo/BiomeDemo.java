@@ -36,12 +36,12 @@ import java.util.List;
 
 public final class BiomeDemo {
 
-    private static final int WIDTH = 4096;
-    private static final int HEIGHT = 1536;
+    private static final int WIDTH = 2160;
+    private static final int HEIGHT = 1440;
     private static final int CHUNK_WIDTH = 16;
 
     private static final int MIN_BLEND_RADIUS = 32;
-    private static final double POINT_FREQUENCY = 0.04;
+    private static final double POINT_FREQUENCY = 0.06;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -56,7 +56,7 @@ public final class BiomeDemo {
         for (int zc = 0; zc < HEIGHT; zc += CHUNK_WIDTH) {
             for (int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH) {
                 long startChunkTime = System.nanoTime();
-
+                System.out.println("Calculation Chunk: x=" + xc + ", z=" + zc);
                 LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, biomePointSampler::getBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
@@ -67,7 +67,7 @@ public final class BiomeDemo {
                         double r, g, b;
                         r = g = b = 0;
 
-                        double maxWeight = Double.NEGATIVE_INFINITY;
+                        /*double maxWeight = Double.NEGATIVE_INFINITY;
                         for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
                             double weight = entry.getWeights()[zi * CHUNK_WIDTH + xi];
                             if (weight > maxWeight) {
@@ -79,9 +79,9 @@ public final class BiomeDemo {
                                 g = color.getGreen();
                                 b = color.getBlue();
                             }
-                        }
+                        }*/
 
-                        /*for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
+                        for (LinkedBiomeWeightMap entry = firstBiomeWeightMap; entry != null; entry = entry.getNext()) {
                             double weight = entry.getWeights()[zi * CHUNK_WIDTH + xi];
                             int biomeId = entry.getBiome();
                             Biome biome = Registry.getBiome(biomeId);
@@ -89,13 +89,14 @@ public final class BiomeDemo {
                             r += color.getRed() * weight;
                             g += color.getGreen() * weight;
                             b += color.getBlue() * weight;
-                        }*/
+                        }
 
                         int rgb = new Color((int) r, (int) g, (int) b).getRGB();
                         image.setRGB(x, z, rgb);
                     }
                 }
                 long chunkTime = System.nanoTime() - startChunkTime;
+                System.out.println("Chunk took: " + chunkTime + "ns to calculate");
                 chunkTimes.add(chunkTime);
             }
         }

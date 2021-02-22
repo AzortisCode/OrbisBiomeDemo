@@ -191,6 +191,7 @@ public class BiomePointSampler {
             final LayerEval closestLayer = getLayer(layers, useContext, closestLayerNoise, closestPoint.getTag().contexts);
 
             if(closestLayer.layer.getLayerObject() instanceof Region){
+                closestPoint.getTag().layers.add(closestLayer);
                 for (GatheredPoint<PointEval> point : pointsToSearch){
                     final double layerNoise = Math.round(noise.noise(point.getX() / region.getZoom(), point.getZ() / region.getZoom()) *
                             dimension.getPrecision()) / dimension.getPrecision();
@@ -229,15 +230,17 @@ public class BiomePointSampler {
 
         // First we're going to iterate through all points, and calculate the closest distance to point with another layer.
         for (GatheredPoint<PointEval> point1 : points){
-            LayerEval layerEval1 = point1.getTag().layers.get(iteration);
-            if(layerEval1 == null || layerEval1.layer != layerEval.layer){
-                // Calculate the squared distance using pythagoras
-                final double dx = point.getX() - point1.getX();
-                final double dz = point.getZ() - point1.getZ();
-                final double distanceSq = dx * dx + dz * dz;
+            if(point1.getTag().layers.size() >= iteration + 1) {
+                LayerEval layerEval1 = point1.getTag().layers.get(iteration);
+                if (layerEval1.layer != layerEval.layer) {
+                    // Calculate the squared distance using pythagoras
+                    final double dx = point.getX() - point1.getX();
+                    final double dz = point.getZ() - point1.getZ();
+                    final double distanceSq = dx * dx + dz * dz;
 
-                // Check if the squared distance is lower than the current squared distance. If so assign this distance.
-                if (distanceSq < closestDistanceSq) closestDistanceSq = distanceSq;
+                    // Check if the squared distance is lower than the current squared distance. If so assign this distance.
+                    if (distanceSq < closestDistanceSq) closestDistanceSq = distanceSq;
+                }
             }
         }
 
@@ -302,28 +305,6 @@ public class BiomePointSampler {
         return typeStrength;
     }
 
-    private static class PointEval {
-        double distanceSquared;
-        int type;
-        double typeNoise;
-        Map<String, Double> contexts = new HashMap<>();
-        List<LayerEval> layers = new ArrayList<>();
-    }
-
-    private static class LayerEval {
-        final Layer<?> layer;
-        final double layerNoise;
-        double min;
-        double max;
-
-        public LayerEval(Layer<?> layer, double layerNoise, double min, double max) {
-            this.layer = layer;
-            this.layerNoise = layerNoise;
-            this.min = min;
-            this.max = max;
-        }
-    }
-
     private double getStrength(double min, double max, double value) {
         if (value < min || value > max) return 0;
         if (min == MIN_NOISE && max == MAX_NOISE) {
@@ -357,7 +338,7 @@ public class BiomePointSampler {
         return Math.round((((value / range) * 2) - 1) * dimension.getPrecision()) / dimension.getPrecision();
     }
 
-    private LayerEval getLayer(List<Layer<?>> layers, boolean useContext, double layerNoise, Map<String, Double> contexts) {
+    private LayerEval getLayer(@NotNull List<Layer<?>> layers, boolean useContext, double layerNoise, Map<String, Double> contexts) {
         Layer<?> selectedLayer = null;
         double min;
         double max;
@@ -415,6 +396,28 @@ public class BiomePointSampler {
             }
         }
         return layerResult;
+    }
+
+    private static class PointEval {
+        double distanceSquared;
+        int type;
+        double typeNoise;
+        Map<String, Double> contexts = new HashMap<>();
+        List<LayerEval> layers = new ArrayList<>();
+    }
+
+    private static class LayerEval {
+        final Layer<?> layer;
+        final double layerNoise;
+        double min;
+        double max;
+
+        public LayerEval(Layer<?> layer, double layerNoise, double min, double max) {
+            this.layer = layer;
+            this.layerNoise = layerNoise;
+            this.min = min;
+            this.max = max;
+        }
     }
 
 }
