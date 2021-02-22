@@ -55,13 +55,8 @@ public class Dimension {
 
     private double cellZoom;
     private int cellPointContributionRadius;
-    private int maxTypeContributionRadius; // Must be lower than above
-    private int maxRegionContributionRadius;
-
-    private double typeFreq;
-    private int typeContrib;
-    private double regionFreq;
-    private int regionContrib;
+    private int typeContributionRadius; // Must be lower than above
+    private int regionContributionRadius;
 
     // Initial regions to sample from, should mostly represent temperature
     //
@@ -131,28 +126,12 @@ public class Dimension {
         return cellPointContributionRadius;
     }
 
-    public int getMaxTypeContributionRadius() {
-        return maxTypeContributionRadius;
+    public int getTypeContributionRadius() {
+        return typeContributionRadius;
     }
 
-    public int getMaxRegionContributionRadius() {
-        return maxRegionContributionRadius;
-    }
-
-    public double getTypeFreq() {
-        return typeFreq;
-    }
-
-    public int getTypeContrib() {
-        return typeContrib;
-    }
-
-    public double getRegionFreq() {
-        return regionFreq;
-    }
-
-    public int getRegionContrib() {
-        return regionContrib;
+    public int getRegionContributionRadius() {
+        return regionContributionRadius;
     }
 
     public List<RegionLayer> getRegions() {

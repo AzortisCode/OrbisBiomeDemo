@@ -30,7 +30,6 @@ import com.azortis.orbis.biomedemo.objects.Dimension;
 import com.azortis.orbis.biomedemo.objects.Region;
 import com.azortis.orbis.biomedemo.objects.layer.Context;
 import com.azortis.orbis.biomedemo.objects.layer.Layer;
-import com.azortis.orbis.biomedemo.objects.layer.RegionLayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -46,8 +45,7 @@ public class BiomePointSampler {
     private final long seed;
     private final double cellFrequency;
     private final int cellPointContributionRadius;
-    private final int typeContributionRadiusSquared;
-    private final int regionContributionRadiusSquared;
+    private final int typeContributionRadiusSq;
 
     public BiomePointSampler(Dimension dimension, int chunkWidth) {
         this.dimension = dimension;
@@ -56,25 +54,37 @@ public class BiomePointSampler {
         seed = dimension.getSeed();
         cellFrequency = 1.0 / dimension.getCellZoom();
         cellPointContributionRadius = dimension.getCellPointContributionRadius();
-        typeContributionRadiusSquared = dimension.getMaxTypeContributionRadius() * dimension.getMaxTypeContributionRadius();
-        regionContributionRadiusSquared = dimension.getMaxRegionContributionRadius() * dimension.getMaxRegionContributionRadius();
+        typeContributionRadiusSq = dimension.getTypeContributionRadius() * dimension.getTypeContributionRadius();
     }
 
     public int getBiomeAt(double x, double z) {
+        // Assign the noise with the type seed first, as we're going to calculate types first.
         final OpenSimplex2S noise = new OpenSimplex2S(dimension.getTypeSeed());
+
+        // Get the base coordinates for this point.
         final int chunkX = (int) (Math.round(x) >> 4);
         final int chunkZ = (int) (Math.round(z) >> 4);
 
-        final Map<String, Double> contexts = new HashMap<>();
-        final ChunkPointGatherer<PointEvaluation> pointGatherer = new ChunkPointGatherer<>(cellFrequency, cellPointContributionRadius, chunkWidth);
-        final List<GatheredPoint<PointEvaluation>> gatheredPoints = pointGatherer.getPointsFromChunkBase(seed, chunkX, chunkZ);
-        GatheredPoint<PointEvaluation> closestPoint = null; // The cell we're currently in.
+        // Gather all points that might have influence on our cell.
+        final ChunkPointGatherer<PointEval> pointGatherer = new ChunkPointGatherer<>(cellFrequency, cellPointContributionRadius, chunkWidth);
+        final List<GatheredPoint<PointEval>> allPoints = pointGatherer.getPointsFromChunkBase(seed, chunkX, chunkZ);
+        assert allPoints.size() > 0;
 
-        for (GatheredPoint<PointEvaluation> point : gatheredPoints) {
+        // First we're going to calculate the closestPoint, this is the cell we're actually going to search
+        // search the biome for. The calculations for every other point is just to aid in getting this one.
+        GatheredPoint<PointEval> currentClosestPoint = null;
+        for (GatheredPoint<PointEval> point : allPoints) {
+            // For optimization purposes we're going to locate the type for this point in this iteration loop
+
+            // Assign a PointEval tag for each point.
+            point.setTag(new PointEval());
+
+            // Get the noise for the type, and assign the noise to the eval.
             final double typeNoise = Math.round(noise.noise(point.getX() / dimension.getTypeZoom(), point.getZ() / dimension.getTypeZoom()) *
                     dimension.getPrecision()) / dimension.getPrecision();
-            point.setTag(new PointEvaluation());
             point.getTag().typeNoise = typeNoise;
+
+            // Assign a type based on the noise values configured in the Dimension file
             if (typeNoise >= dimension.getLandMin() && typeNoise <= dimension.getLandMax()) {
                 point.getTag().type = 0;
             } else if (typeNoise >= dimension.getShoreMin() && typeNoise <= dimension.getShoreMax()) {
@@ -82,102 +92,80 @@ public class BiomePointSampler {
             } else if (typeNoise >= dimension.getSeaMin() && typeNoise <= dimension.getSeaMax()) {
                 point.getTag().type = 2;
             }
+
+            // Calculate and assign the distance squared to the x,z coordinates using a pythagoras distance function
             final double dx = point.getX() - x;
             final double dz = point.getZ() - z;
-            point.getTag().distanceSquared = dx * dx + dz * dz; // Pythagoras
+            point.getTag().distanceSquared = dx * dx + dz * dz;
 
-            if (closestPoint == null) closestPoint = point;
-            else if (closestPoint.getTag().distanceSquared > point.getTag().distanceSquared) closestPoint = point;
-        }
-        assert closestPoint != null;
-        GatheredPoint<PointEvaluation> closestOtherTypePoint = null;
-        for (GatheredPoint<PointEvaluation> point : gatheredPoints) {
-            if (point != closestPoint) {
-                final double dx = point.getX() - closestPoint.getX();
-                final double dz = point.getZ() - closestPoint.getZ();
-                point.getTag().distanceSquared2Closest = dx * dx + dz * dz;
-
-                if (point.getTag().type != closestPoint.getTag().type) {
-                    if (closestOtherTypePoint == null) closestOtherTypePoint = point;
-                    else if (closestOtherTypePoint.getTag().distanceSquared2Closest >
-                            point.getTag().distanceSquared2Closest) closestOtherTypePoint = point;
-                }
+            // Check if the distance squared is lower than the currentClosestPoint, if so assign this point.
+            // And assign this point if current is null, to initialize the value.
+            if (currentClosestPoint == null) {
+                currentClosestPoint = point;
+            } else if (currentClosestPoint.getTag().distanceSquared > point.getTag().distanceSquared) {
+                currentClosestPoint = point;
             }
         }
 
-        final double typeNoise = closestPoint.getTag().typeNoise;
-        double typeStrength = 0.0d;
-        switch (closestPoint.getTag().type) {
-            case 0:
-                typeStrength = getStrength(dimension.getLandMin(), dimension.getLandMax(), typeNoise);
-                break;
-            case 1:
-                typeStrength = getStrength(dimension.getShoreMin(), dimension.getShoreMax(), typeNoise);
-                break;
-            case 2:
-                typeStrength = getStrength(dimension.getSeaMin(), dimension.getSeaMax(), typeNoise);
-        }
+        // Assign the value as final
+        final GatheredPoint<PointEval> closestPoint = currentClosestPoint;
 
-        if (closestOtherTypePoint != null) {
-            if (closestOtherTypePoint.getTag().distanceSquared2Closest <= typeContributionRadiusSquared) {
-                typeStrength *= (closestOtherTypePoint.getTag().distanceSquared2Closest / typeContributionRadiusSquared);
-                typeStrength = Math.round(typeStrength * dimension.getPrecision()) / dimension.getPrecision();
-                if (typeStrength < 0) typeStrength = 0.0d;
-                if (typeStrength > 1) typeStrength = 0.0d;
+        // Create a list of all points that need to be calculated, will shrink the closer we get to the biome
+        List<GatheredPoint<PointEval>> pointsToSearch = new ArrayList<>(allPoints);
+        pointsToSearch.remove(closestPoint);
+        pointsToSearch.removeIf(point -> point.getTag().type != closestPoint.getTag().type);
+
+        // Calculate & assign the initial region for closest point.
+        final List<Layer<?>> initialRegions = new ArrayList<>(dimension.getRegions());
+        final double initialRegionNoise = Math.round(noise.noise(closestPoint.getX() / dimension.getRegionZoom(),
+                closestPoint.getZ() / dimension.getRegionZoom()) * dimension.getPrecision()) / dimension.getPrecision();
+        final Layer<?> initialRegionLayer = getLayer(initialRegions, initialRegionNoise);
+
+        closestPoint.getTag().layers.add(new LayerEval(initialRegionLayer, initialRegionNoise,
+                initialRegionLayer.getMin(), initialRegionLayer.getMax()));
+
+        // Now we have to calculate the initial regions for all our points that have the same type.
+        // Assign the region seed to the noise generator
+        noise.setSeed(dimension.getRegionSeed());
+
+        // Iterate all points and assign region layer
+        final List<GatheredPoint<PointEval>> pointsToRemove = new ArrayList<>();
+        for (GatheredPoint<PointEval> point : pointsToSearch) {
+            // Get the noise for the region
+            final double regionNoise = Math.round(noise.noise(point.getX() / dimension.getRegionZoom(), point.getZ() / dimension.getRegionZoom()) *
+                    dimension.getPrecision()) / dimension.getPrecision();
+
+            // Get the region layer
+            final Layer<?> region = getLayer(initialRegions, regionNoise);
+
+            if (region == initialRegionLayer) {
+                // Create a new LayerEval and assign it to position 0 in the ArrayList
+                point.getTag().layers.add(new LayerEval(region, regionNoise, region.getMin(), region.getMax()));
+            } else {
+                // Remove from points to search, as this point now has become irrelevant
+                pointsToRemove.add(point);
             }
         }
-        contexts.put("type", typeStrength);
+        pointsToSearch.removeAll(pointsToRemove);
+        pointsToRemove.clear();
 
-        final double initialRegionNoise = Math.round(noise.noise(closestPoint.getX() / dimension.getRegionZoom(), closestPoint.getZ() /
-                dimension.getRegionZoom()) * dimension.getPrecision()) / dimension.getPrecision();
-        RegionLayer currentRegionLayer = null;
-        for (RegionLayer layer : dimension.getRegions()) {
-            if (layer.getMin() <= initialRegionNoise && layer.getMax() >= initialRegionNoise) {
-                currentRegionLayer = layer;
-            }
+        // Calculate and assign the type strength context for each point with the same type & region.
+        pointsToSearch.add(closestPoint);
+        for (GatheredPoint<PointEval> point : pointsToSearch){
+            point.getTag().contexts.put("type", getTypeStrength(point, allPoints));
+            point.getTag().contexts.put(initialRegionLayer.getLayerName(),
+                    getLayerStrength(point, 0, dimension.getRegionContributionRadius(), allPoints));
         }
-        assert currentRegionLayer != null;
-        GatheredPoint<PointEvaluation> closestOtherRegionPoint = null;
-        for (GatheredPoint<PointEvaluation> point : gatheredPoints) {
-            final double regionNoise = Math.round(noise.noise(point.getX() / dimension.getRegionZoom(), point.getZ() /
-                    dimension.getRegionZoom()) * dimension.getPrecision()) / dimension.getPrecision();
-            RegionLayer regionLayer = null;
-            for (RegionLayer layer : dimension.getRegions()) {
-                if (layer.getMin() <= regionNoise && layer.getMax() >= regionNoise) {
-                    regionLayer = layer;
-                }
-            }
-            assert regionLayer != null;
-            point.getTag().regionLayers.add(regionLayer);
-
-            if (regionLayer != currentRegionLayer && point != closestPoint &&
-                    point.getTag().distanceSquared2Closest <= regionContributionRadiusSquared) {
-                if (closestOtherRegionPoint == null) closestOtherRegionPoint = point;
-                else if (point.getTag().distanceSquared2Closest < closestOtherRegionPoint.getTag().distanceSquared2Closest)
-                    closestOtherRegionPoint = point;
-            }
-        }
-
-        double initialRegionStrength = getStrength(currentRegionLayer.getMin(), currentRegionLayer.getMax(), initialRegionNoise);
-        if (closestOtherRegionPoint != null) {
-            initialRegionStrength *= (closestOtherRegionPoint.getTag().distanceSquared2Closest / regionContributionRadiusSquared);
-            initialRegionStrength = Math.round(initialRegionStrength * dimension.getPrecision()) / dimension.getPrecision();
-            if (initialRegionStrength < 0) initialRegionStrength = 0.0d;
-            if (initialRegionStrength > 1) initialRegionStrength = 1.0d;
-        }
-
-        contexts.put(currentRegionLayer.getLayerName(), initialRegionStrength);
-        Biome selectedBiome = null;
+        pointsToSearch.remove(closestPoint);
 
         int iteration = 1;
+        Biome selectedBiome = null;
 
-        while (selectedBiome == null) {
+        while (selectedBiome == null){
+            final Region region = (Region) closestPoint.getTag().layers.get(iteration - 1).layer.getLayerObject();
+            noise.setSeed(region.getSeed());
 
-            // Step one, calculate the currentPoint
-            final Region region = currentRegionLayer.getLayerObject();
-            final double layerNoise = Math.round(noise.noise(closestPoint.getX() / region.getZoom(), closestPoint.getZ() /
-                    region.getZoom()) * dimension.getPrecision()) / dimension.getPrecision();
-
+            // Get the layers for this iteration
             List<Layer<?>> layers = new ArrayList<>();
             boolean useContext = false;
             switch (closestPoint.getTag().type) {
@@ -197,52 +185,143 @@ public class BiomePointSampler {
                     useContext = region.getContextSettings().isUseSeaContext();
             }
 
-            Object[] layerEval = getLayer(layers, useContext, layerNoise, contexts);
-            Layer<?> selectedLayer = (Layer<?>) layerEval[2];
-            double min = (double) layerEval[0];
-            double max = (double) layerEval[1];
+            // Calculate the region/biome for closestPoint
+            final double closestLayerNoise = Math.round(noise.noise(closestPoint.getX() / region.getZoom(), closestPoint.getZ() / region.getZoom()) *
+                    dimension.getPrecision()) / dimension.getPrecision();
+            final LayerEval closestLayer = getLayer(layers, useContext, closestLayerNoise, closestPoint.getTag().contexts);
 
-            double layerStrength = getStrength(min, max, layerNoise);
+            if(closestLayer.layer.getLayerObject() instanceof Region){
+                for (GatheredPoint<PointEval> point : pointsToSearch){
+                    final double layerNoise = Math.round(noise.noise(point.getX() / region.getZoom(), point.getZ() / region.getZoom()) *
+                            dimension.getPrecision()) / dimension.getPrecision();
+                    final LayerEval layer = getLayer(layers, useContext, layerNoise, point.getTag().contexts);
 
-            // Iterate through all relevant points to get the closest, so we can modify our above strength.
-            GatheredPoint<PointEvaluation> closestOtherLayerPoint = null;
-
-            for (GatheredPoint<PointEvaluation> point : gatheredPoints) {
-                if (point != closestPoint && point.getTag().distanceSquared2Closest < region.getMaxContributionRadius()) {
-                    // For optimization purposes we can make a few assumptions luckily :0
-
-                    if (point.getTag().type != closestPoint.getTag().type) {
-                        if (closestOtherLayerPoint == null) closestOtherLayerPoint = point;
-                        else if (closestOtherLayerPoint.getTag().distanceSquared2Closest >
-                                point.getTag().distanceSquared2Closest) closestOtherLayerPoint = point;
-                        continue;
-                    }
-
-                    // All you need to know if the last known layer is not equal to the current layer
-                    boolean isOtherLayer = false;
-                    for (int i = 1; i <= iteration; i++) {
-                        if (point.getTag().regionLayers.get(i) != closestPoint.getTag().regionLayers.get(i)) {
-                            isOtherLayer = true;
-                            break;
-                        }
-                    }
-
-                    if(isOtherLayer){
-                        if (closestOtherLayerPoint == null) closestOtherLayerPoint = point;
-                        else if (closestOtherLayerPoint.getTag().distanceSquared2Closest >
-                                point.getTag().distanceSquared2Closest) closestOtherLayerPoint = point;
+                    if(layer.layer == closestLayer.layer){
+                        point.getTag().layers.add(layer);
                     } else {
-                        final double pointNoise = Math.round(noise.noise(point.getX() / region.getZoom(), point.getZ() /
-                                region.getZoom()) * dimension.getPrecision()) / dimension.getPrecision();
-
+                        pointsToRemove.add(point);
                     }
-
                 }
-            }
+                pointsToSearch.removeAll(pointsToRemove);
+                pointsToRemove.clear();
 
+                pointsToSearch.add(closestPoint);
+                for (GatheredPoint<PointEval> point : pointsToSearch){
+                    double layerStrength = getLayerStrength(point, iteration, region.getContributionRadius(), allPoints);
+                    point.getTag().contexts.put(closestLayer.layer.getLayerName(), layerStrength);
+                }
+                pointsToSearch.remove(closestPoint);
+                iteration++;
+            } else {
+                selectedBiome = (Biome) closestLayer.layer.getLayerObject();
+            }
+        }
+        return selectedBiome.getId();
+    }
+
+    private double getLayerStrength(GatheredPoint<PointEval> point, int iteration, int contributionRadius,
+                                    List<GatheredPoint<PointEval>> points){
+        // Get the layer evaluation of the point at iteration
+        LayerEval layerEval = point.getTag().layers.get(iteration);
+
+        // The current closest distance squared with another layer
+        double closestDistanceSq = Double.MAX_VALUE;
+
+        // First we're going to iterate through all points, and calculate the closest distance to point with another layer.
+        for (GatheredPoint<PointEval> point1 : points){
+            LayerEval layerEval1 = point1.getTag().layers.get(iteration);
+            if(layerEval1 == null || layerEval1.layer != layerEval.layer){
+                // Calculate the squared distance using pythagoras
+                final double dx = point.getX() - point1.getX();
+                final double dz = point.getZ() - point1.getZ();
+                final double distanceSq = dx * dx + dz * dz;
+
+                // Check if the squared distance is lower than the current squared distance. If so assign this distance.
+                if (distanceSq < closestDistanceSq) closestDistanceSq = distanceSq;
+            }
         }
 
-        return selectedBiome.getId();
+        // Calculate initial layer strength with no coefficient applied.
+        double layerStrength = getStrength(layerEval.min, layerEval.max, layerEval.layerNoise);
+
+        // If closest distance is in the contribution radius, then apply the coefficient to the strength.
+        int contributionRadiusSq = contributionRadius * contributionRadius;
+        if(closestDistanceSq < contributionRadiusSq){
+            layerStrength *= (closestDistanceSq / contributionRadiusSq);
+
+            // Make sure to round it again to the amount of decimal places * 10 configured in Dimension
+            layerStrength = Math.round(layerStrength * dimension.getPrecision()) / dimension.getPrecision();
+        }
+        return layerStrength;
+    }
+
+    private double getTypeStrength(GatheredPoint<PointEval> point, List<GatheredPoint<PointEval>> points){
+        // The current closest distance squared to point with another type.
+        double closestDistanceSq = Double.MAX_VALUE;
+
+        // First we're going to iterate through all the points, and calculate the closest distance to point with another type.
+        for (GatheredPoint<PointEval> point1 : points){
+            if(point1.getTag().type != point.getTag().type) {
+                // Calculate the squared distance using pythagoras
+                final double dx = point.getX() - point1.getX();
+                final double dz = point.getZ() - point1.getZ();
+                final double distanceSq = dx * dx + dz * dz;
+
+                // Check if the squared distance is lower than the current squared distance. If so assign this distance.
+                if (distanceSq < closestDistanceSq) closestDistanceSq = distanceSq;
+            }
+        }
+
+        // Get the corresponding min and max values of the type.
+        double min = -1.0d;
+        double max = 1.0d;
+        switch (point.getTag().type){
+            case 0:
+                min = dimension.getLandMin();
+                max = dimension.getLandMax();
+                break;
+            case 1:
+                min = dimension.getShoreMin();
+                max = dimension.getShoreMax();
+                break;
+            case 2:
+                min = dimension.getSeaMin();
+                max = dimension.getSeaMax();
+        }
+
+        // Calculate the strength purely based on the noise map.
+        double typeStrength = getStrength(min, max, point.getTag().typeNoise);
+
+        // If the closest distance is in the type contribution radius, then apply the coefficient to the strength.
+        if(closestDistanceSq < typeContributionRadiusSq) {
+            typeStrength *= (closestDistanceSq / typeContributionRadiusSq);
+
+            // Make sure to round it again to the amount of decimal places * 10 configured in Dimension
+            typeStrength = Math.round(typeStrength * dimension.getPrecision()) / dimension.getPrecision();
+        }
+        return typeStrength;
+    }
+
+    private static class PointEval {
+        double distanceSquared;
+        int type;
+        double typeNoise;
+        Map<String, Double> contexts = new HashMap<>();
+        List<LayerEval> layers = new ArrayList<>();
+    }
+
+    private static class LayerEval {
+        final Layer<?> layer;
+        final double layerNoise;
+        double min;
+        double max;
+
+        public LayerEval(Layer<?> layer, double layerNoise, double min, double max) {
+            this.layer = layer;
+            this.layerNoise = layerNoise;
+            this.min = min;
+            this.max = max;
+        }
     }
 
     private double getStrength(double min, double max, double value) {
@@ -278,7 +357,7 @@ public class BiomePointSampler {
         return Math.round((((value / range) * 2) - 1) * dimension.getPrecision()) / dimension.getPrecision();
     }
 
-    private Object[] getLayer(List<Layer<?>> layers, boolean useContext, double layerNoise, Map<String, Double> contexts){
+    private LayerEval getLayer(List<Layer<?>> layers, boolean useContext, double layerNoise, Map<String, Double> contexts) {
         Layer<?> selectedLayer = null;
         double min;
         double max;
@@ -299,7 +378,7 @@ public class BiomePointSampler {
             min = selectedLayer.getMin();
             max = selectedLayer.getMax();
         }
-        return new Object[]{min, max, selectedLayer};
+        return new LayerEval(selectedLayer, layerNoise, min, max);
     }
 
     @NotNull
@@ -336,15 +415,6 @@ public class BiomePointSampler {
             }
         }
         return layerResult;
-    }
-
-    private static class PointEvaluation {
-        double distanceSquared;
-        double distanceSquared2Closest;
-        int type = -1;
-        double typeNoise = 0;
-        List<RegionLayer> regionLayers = new ArrayList<>(); // Less to store ;)
-        Map<String, Double> contexts = new HashMap<>();
     }
 
 }

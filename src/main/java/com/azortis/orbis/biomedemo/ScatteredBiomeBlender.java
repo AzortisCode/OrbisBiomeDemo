@@ -110,6 +110,7 @@ public class ScatteredBiomeBlender {
                             entry = entry.getNext();
                         }
 
+                        assert entry != null;
                         entry.getWeights()[zi * chunkWidth + xi] += weight;
                         columnTotalWeight += weight;
                     }

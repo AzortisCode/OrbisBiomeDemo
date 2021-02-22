@@ -26,7 +26,7 @@ package com.azortis.orbis.biomedemo;
 
 import com.azortis.orbis.biomedemo.objects.*;
 import com.azortis.orbis.biomedemo.objects.Dimension;
-import com.azortis.orbis.biomedemo.point.OldBiomePointGatherer;
+import com.azortis.orbis.biomedemo.point.BiomePointSampler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,7 +49,7 @@ public final class BiomeDemo {
         Dimension dimension = Registry.getDimension(args[0]);
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        OldBiomePointGatherer oldBiomePointGatherer = new OldBiomePointGatherer(dimension, CHUNK_WIDTH);
+        BiomePointSampler biomePointSampler = new BiomePointSampler(dimension, CHUNK_WIDTH);
         ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(POINT_FREQUENCY, MIN_BLEND_RADIUS, CHUNK_WIDTH);
 
         List<Long> chunkTimes = new ArrayList<>();
@@ -57,7 +57,7 @@ public final class BiomeDemo {
             for (int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH) {
                 long startChunkTime = System.nanoTime();
 
-                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, oldBiomePointGatherer::getBiomeAt);
+                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, biomePointSampler::getBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
                     for (int xi = 0; xi < CHUNK_WIDTH; xi++) {
