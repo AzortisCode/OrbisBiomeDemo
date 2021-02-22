@@ -375,12 +375,12 @@ public class BiomePointSampler {
         }
         participatingLayers.sort(Comparator.comparingInt(Layer::getIndex));
         int maxChance = layers.stream().mapToInt(Layer::getChance).sum();
-        double chancePerTicket = Math.round((2.0d / maxChance) * dimension.getPrecision()) / dimension.getPrecision();
+        double chancePerTicket = 2.0d / maxChance;
         Map<double[], Layer<?>> layerMap = new HashMap<>();
         double currentMin = -1;
         for (Layer<?> layer : layers) {
             double min = currentMin;
-            double max = min + layer.getChance() * chancePerTicket;
+            double max = min + Math.round(layer.getChance() * chancePerTicket * dimension.getPrecision()) / dimension.getPrecision();
             layerMap.put(new double[]{min, max}, layer);
             currentMin = max + 1.0 / dimension.getPrecision();
         }

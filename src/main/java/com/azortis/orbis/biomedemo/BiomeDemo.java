@@ -41,7 +41,6 @@ public final class BiomeDemo {
     private static final int CHUNK_WIDTH = 16;
 
     private static final int MIN_BLEND_RADIUS = 32;
-    private static final double POINT_FREQUENCY = 0.06;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -50,7 +49,7 @@ public final class BiomeDemo {
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         BiomePointSampler biomePointSampler = new BiomePointSampler(dimension, CHUNK_WIDTH);
-        ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(POINT_FREQUENCY, MIN_BLEND_RADIUS, CHUNK_WIDTH);
+        ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(1.0 / dimension.getCellZoom(), MIN_BLEND_RADIUS, CHUNK_WIDTH);
 
         List<Long> chunkTimes = new ArrayList<>();
         for (int zc = 0; zc < HEIGHT; zc += CHUNK_WIDTH) {
