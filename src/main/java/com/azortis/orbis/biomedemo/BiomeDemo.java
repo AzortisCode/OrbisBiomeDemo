@@ -26,7 +26,7 @@ package com.azortis.orbis.biomedemo;
 
 import com.azortis.orbis.biomedemo.objects.*;
 import com.azortis.orbis.biomedemo.objects.Dimension;
-import com.azortis.orbis.biomedemo.point.BiomePointSampler;
+import com.azortis.orbis.biomedemo.point.ChunkBiomePointSampler;
 
 import javax.swing.*;
 import java.awt.*;
@@ -40,7 +40,9 @@ public final class BiomeDemo {
     private static final int HEIGHT = 1440;
     private static final int CHUNK_WIDTH = 16;
 
+    private static final int SEARCH_RADIUS = 42;
     private static final int MIN_BLEND_RADIUS = 32;
+    private static final double POINT_FREQUENCY = 0.04;
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
@@ -48,15 +50,15 @@ public final class BiomeDemo {
         Dimension dimension = Registry.getDimension(args[0]);
 
         BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        BiomePointSampler biomePointSampler = new BiomePointSampler(dimension, CHUNK_WIDTH);
-        ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(1.0 / dimension.getCellZoom(), MIN_BLEND_RADIUS, CHUNK_WIDTH);
+        ScatteredBiomeBlender biomeBlender = new ScatteredBiomeBlender(POINT_FREQUENCY, MIN_BLEND_RADIUS, CHUNK_WIDTH);
 
         List<Long> chunkTimes = new ArrayList<>();
         for (int zc = 0; zc < HEIGHT; zc += CHUNK_WIDTH) {
             for (int xc = 0; xc < WIDTH; xc += CHUNK_WIDTH) {
                 long startChunkTime = System.nanoTime();
-                System.out.println("Calculation Chunk: x=" + xc + ", z=" + zc);
-                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, biomePointSampler::getBiomeAt);
+                System.out.println("Calculating Chunk: x=" + xc + ", z=" + zc);
+                ChunkBiomePointSampler chunkBiomePointSampler = new ChunkBiomePointSampler(dimension, 1.0 / dimension.getCellZoom(), CHUNK_WIDTH, SEARCH_RADIUS, xc, zc);
+                LinkedBiomeWeightMap firstBiomeWeightMap = biomeBlender.getBlendForChunk(dimension.getSeed(), xc, zc, chunkBiomePointSampler::getBiomeAt);
 
                 for (int zi = 0; zi < CHUNK_WIDTH; zi++) {
                     for (int xi = 0; xi < CHUNK_WIDTH; xi++) {

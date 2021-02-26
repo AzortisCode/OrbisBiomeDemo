@@ -45,7 +45,7 @@ public class Region {
     private long seed;
 
     // The zoom
-    private double zoom;
+    private int zoom;
 
     private List<RegionLayer> landRegions;
     private List<BiomeLayer> landBiomes;
@@ -73,7 +73,7 @@ public class Region {
         return seed;
     }
 
-    public double getZoom() {
+    public int getZoom() {
         return zoom;
     }
 

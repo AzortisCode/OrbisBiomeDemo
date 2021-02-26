@@ -52,7 +52,7 @@ public class BiomePointSampler {
         this.chunkWidth = chunkWidth;
 
         seed = dimension.getSeed();
-        cellFrequency = 1.0 / dimension.getCellZoom();
+        cellFrequency = 0.01;
         cellPointContributionRadius = dimension.getCellPointContributionRadius();
         typeContributionRadiusSq = dimension.getTypeContributionRadius() * dimension.getTypeContributionRadius();
     }
@@ -217,6 +217,7 @@ public class BiomePointSampler {
                 selectedBiome = (Biome) closestLayer.layer.getLayerObject();
             }
         }
+
         return selectedBiome.getId();
     }
 

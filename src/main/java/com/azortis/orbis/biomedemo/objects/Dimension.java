@@ -36,14 +36,14 @@ public class Dimension {
     private long seed;
 
     // The amount of decimal places times 2 to take into account when calculation layers, all configuration files must be made according to this(So no missing decimal places!)
-    private double precision;
+    private long precision;
 
     private long regionSeed;
-    private double regionZoom;
+    private int regionZoom;
 
     // The type is global to make sure sea's etc are connected via shores
     private long typeSeed;
-    private long typeZoom;
+    private int typeZoom;
 
     // The min's and maxes for the type noise map, to apply globally
     private double seaMin;
@@ -82,7 +82,7 @@ public class Dimension {
         return regionSeed;
     }
 
-    public double getRegionZoom() {
+    public int getRegionZoom() {
         return regionZoom;
     }
 
@@ -90,7 +90,7 @@ public class Dimension {
         return typeSeed;
     }
 
-    public long getTypeZoom() {
+    public int getTypeZoom() {
         return typeZoom;
     }
 
