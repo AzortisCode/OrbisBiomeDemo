@@ -116,7 +116,8 @@ public class ChunkBiomePointSampler {
             }
             boolean allBiomesFound = true;
             for (GatheredPoint<BiomeEval> chunkPoint : chunkPoints){
-                allBiomesFound = chunkPoint.getTag().biomeFound;
+                if(allBiomesFound)allBiomesFound = chunkPoint.getTag().biomeFound;
+                else break;
             }
             allBiomesEvaluated = allBiomesFound;
             iteration++;
@@ -130,7 +131,7 @@ public class ChunkBiomePointSampler {
         Region region = (Region) regionLayer.getLayerObject();
         final OpenSimplex2S noise = new OpenSimplex2S(region.getSeed());
         int maxRegionRadius = region.getContributionRadius() + maxSearchRadius;
-        final int maxRegionRadiusSq = maxRegionRadius * maxRegionRadius;
+        final int maxRegionRadiusSq = maxRegionRadius * maxRegionRadius; // Add 8 for padding
 
         for (GatheredPoint<PointEval> point : allPoints){
             if(iteration == point.getTag().layers.size() && point.getTag().distanceSq <= maxRegionRadiusSq &&
@@ -375,8 +376,10 @@ public class ChunkBiomePointSampler {
         for (Layer<?> layer : layers) {
             boolean add = true;
             for (Context context : layer.getContexts()) {
-                double contextDouble = contexts.get(context.getContext());
-                if (!(context.getMin() <= contextDouble && context.getMax() >= contextDouble)) add = false;
+                if(contexts.containsKey(context.getContext())) {
+                    double contextDouble = contexts.get(context.getContext());
+                    if (!(context.getMin() <= contextDouble && context.getMax() >= contextDouble)) add = false;
+                }
             }
             if (add) participatingLayers.add(layer);
         }
@@ -397,16 +400,12 @@ public class ChunkBiomePointSampler {
         for (int i = 0; i < layerList.size(); i++) {
             MapEval eval = layerList.get(i);
             if(i == 0){
-                layerMap.put(new double[]{eval.min, eval.max}, eval.layer);
-                currentMin = eval.max + 1.0 / dimension.getPrecision();
-                continue;
+                eval.min = currentMin;
             } else if (i == layerList.size() - 1){
                 eval.max = 1.0d;
             }
-            if(currentMin != eval.min){
-                layerMap.put(new double[]{currentMin, eval.max}, eval.layer);
-                currentMin = eval.max + 1.0 / dimension.getPrecision();
-            }
+            layerMap.put(new double[]{eval.min, eval.max}, eval.layer);
+            currentMin = eval.max + 1.0d / dimension.getPrecision();
         }
         return layerMap;
     }
